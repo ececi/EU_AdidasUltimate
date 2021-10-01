@@ -5,24 +5,28 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.util.List;
+
 public class Adidas {
     static WebDriver driver;
     private static final String addToChartLinkText = "Add to cart";
 
-    private String product;
+    private String productName;
     private final String linkText;
     private final EProductCategory productCategory;
     private double amount;
 
-    private Adidas(EProductCategory productCategory, String product){
+    private Adidas(EProductCategory productCategory, String productName){
         this.productCategory = productCategory;
-        this.product = product;
-        this.linkText = product;
+        this.productName = productName;
+        this.linkText = productName;
     }
 
     public static void setupDriver(WebDriver driver){
         Adidas.driver = driver;
     }
+
+    public String getProductName(){return productName;}
 
     public EProductCategory getProductCategory(){return productCategory;}
 
@@ -30,7 +34,9 @@ public class Adidas {
 
     public double getAmount(){return amount;}
 
-    public void setAmount(double amount){this.amount = amount;}
+    public void updateAmount(){
+        amount = Double.parseDouble(driver.findElement(By.cssSelector(".price-container")).getText().split(" ")[0].substring(1));
+    }
 
     public WebElement getMenuCategory(){
         return driver.findElement(By.linkText(getProductCategory().getLinkText()));
@@ -58,11 +64,21 @@ public class Adidas {
         }
 
         /**
-         * @param productIndex zero based index
+         * @param product product to remove
          * @return
          */
-        public static WebElement getButtonRemoveProductByProductIndex(int productIndex){
-            return driver.findElement(By.cssSelector("#tbodyid tr:nth-of-type(" + (productIndex + 1) + ") td:nth-of-type(4) a"));
+        public static WebElement getButtonRemoveProductByProductIndex(Adidas product){
+            //<td>Dell i7 8gb</td>          collection
+            List<WebElement> tdElementsOfProductsInBox = driver.findElements(By.cssSelector(".success td:nth-of-type(2)"));
+
+            int productIndexToRemove = 0;
+            for (int i = 0; i < tdElementsOfProductsInBox.size(); i++) {
+                if (tdElementsOfProductsInBox.get(i).getAttribute("innerHTML").equals(product.productName)){
+                    productIndexToRemove = i;
+                    break;
+                }
+            }
+            return driver.findElement(By.cssSelector("#tbodyid tr:nth-of-type(" + (productIndexToRemove + 1) + ") td:nth-of-type(4) a"));
         }
 
         public static class PurchaseForm{
